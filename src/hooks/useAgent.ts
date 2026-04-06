@@ -26,29 +26,37 @@ export const useAgent = () => {
   const generateIdeas = async (input: HackathonInput) => {
     setLoading(true);
     setError(null);
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemPrompt: buildSystemPrompt(),
-          userMessage: buildUserPrompt(input),
-        }),
-      });
+    let attempts = 0;
+    const maxAttempts = 2;
 
-      const data = await response.json();
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemPrompt: buildSystemPrompt(),
+            userMessage: buildUserPrompt(input),
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(data.details || data.error || "Server error occurred");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.details || data.error || "Server error occurred");
+        }
+
+        setIdeas(data.ideas);
+        break; // Success, exit loop
+      } catch (err: unknown) {
+        console.error(`Generation attempt ${attempts} failed:`, err);
+        if (attempts >= maxAttempts) {
+          setError(err instanceof Error ? err.message : "Something went wrong. Check API Key?");
+        }
       }
-
-      setIdeas(data.ideas);
-    } catch (err: unknown) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Something went wrong. Check API Key?");
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const refineIdea = async (idea: ProjectIdea, refinement: string) => {

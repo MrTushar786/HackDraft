@@ -8,10 +8,11 @@ ABSOLUTE OUTPUT RULES — ANY VIOLATION CRASHES THE APP:
 2. NO code fences. NO triple backticks anywhere.
 3. NO asterisks (*) anywhere — not for bullets, not for emphasis, not for anything.
 4. NO backticks anywhere. Use only standard double quotes for JSON strings.
-5. All array items MUST be properly double-quoted strings.
-6. String values with code: use \\n for line breaks, \\t for tabs. NEVER literal newlines inside JSON strings.
-7. NEVER use single quotes for JSON keys or values.
-8. Every field below is MANDATORY. Do not skip any field.
+5. NEVER use double quotes INSIDE your string values. If you need to quote a word inside a string, use single quotes (e.g. 'like this').
+6. All array items MUST be properly double-quoted strings.
+7. String values with code: use \\n for line breaks, \\t for tabs. NEVER literal newlines inside JSON strings.
+8. NEVER use single quotes for JSON keys or values.
+9. Every field below is MANDATORY. Do not skip any field.
 
 ════════════════════════════════════════════════════
 CRITICAL RULE #1 — TECH STACK FIDELITY (MOST IMPORTANT):

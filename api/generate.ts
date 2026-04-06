@@ -38,11 +38,22 @@ export default async function handler(
 
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return response.status(200).json(parsed);
+      try {
+        let rawJson = jsonMatch[0];
+        // Fix common trailing comma issues
+        rawJson = rawJson.replace(/,\s*([\]}])/g, '$1');
+        const parsed = JSON.parse(rawJson);
+        return response.status(200).json(parsed);
+      } catch (parseError) {
+        return response.status(500).json({ 
+          error: "Failed to parse JSON response. The LLM produced malformed output. Please click reboot and try again.", 
+          details: parseError instanceof Error ? parseError.message : String(parseError),
+          raw: result 
+        });
+      }
     }
 
-    return response.status(500).json({ error: "Failed to parse JSON response", raw: result });
+    return response.status(500).json({ error: "No JSON object found in response", raw: result });
 
   } catch (error) {
     console.error('API Error:', error);
