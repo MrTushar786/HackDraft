@@ -8,9 +8,9 @@ ABSOLUTE OUTPUT RULES — ANY VIOLATION CRASHES THE APP:
 2. NO code fences. NO triple backticks anywhere.
 3. NO asterisks (*) anywhere — not for bullets, not for emphasis, not for anything.
 4. NO backticks anywhere. Use only standard double quotes for JSON strings.
-5. NEVER use double quotes INSIDE your string values. If you need to quote a word inside a string, use single quotes (e.g. 'like this').
-6. All array items MUST be properly double-quoted strings.
-7. String values with code: use \\n for line breaks, \\t for tabs. NEVER literal newlines inside JSON strings.
+5. ESCAPE ALL DOUBLE QUOTES inside strings. Example: "title": "The \"Best\" App"
+6. ESCAPE ALL NEWLINES. You MUST use \\n. NEVER use a literal, physical newline character inside a JSON string.
+7. If your JSON parsing fails, you fail the mission. Output ONLY valid JSON.
 8. NEVER use single quotes for JSON keys or values.
 9. Every field below is MANDATORY. Do not skip any field.
 
@@ -184,7 +184,7 @@ OUTPUT THIS EXACT JSON SHAPE:
 };
 
 export const buildUserPrompt = (input: HackathonInput) => {
-  return `Generate 3 distinct hackathon project ideas with these EXACT constraints:
+  return `Generate 2 distinct hackathon project ideas with these EXACT constraints:
 
 Theme: ${input.theme}
 Duration: ${input.duration}
@@ -193,10 +193,10 @@ Available Technologies (USE ONLY THESE): ${input.skills.join(", ")}
 
 CRITICAL CONSTRAINTS:
 1. ONLY use technologies from the list above. If React is NOT listed, do NOT use React. If Python IS listed, use Python everywhere in backend code.
-2. Difficulty levels: Idea 1 = Beginner, Idea 2 = Intermediate, Idea 3 = Advanced.
-3. setupCommands must be an ARRAY of 5-8 sequential terminal commands for the CHOSEN tech stack.
-4. dbSchemaDiagram must have 5-8 tables with 5-8 fields each — reflect real project complexity.
-5. pitchScript must have 5 sections, each with 80-120 spoken words of actual first-person speech.
+2. Difficulty levels: Idea 1 = Beginner/Intermediate, Idea 2 = Advanced.
+3. setupCommands must be an ARRAY of 4-6 sequential terminal commands for the CHOSEN tech stack.
+4. dbSchemaDiagram must have 4-5 tables with 4-5 fields each.
+5. pitchScript must have 4 sections, each with ~60 spoken words of actual first-person speech.
 6. All codeSnippets must be in the user's chosen tech: ${input.skills.join(", ")}.
 
 Make each idea genuinely winnable, technically impressive, and specific to the theme.

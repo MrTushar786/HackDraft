@@ -89,7 +89,7 @@ function App() {
             <div className="flex justify-between items-end mb-16">
                <div className="space-y-2">
                  <h2 className="text-5xl font-syne font-black uppercase">Architectural Blueprints</h2>
-                 <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">3 Strategic Directions Generated for your theme.</p>
+                 <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">{ideas.length} Strategic Directions Generated for your theme.</p>
                </div>
                <button 
                  onClick={() => { setHasStarted(false); }} 
@@ -99,7 +99,7 @@ function App() {
                </button>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 gap-8">
               {ideas.map((idea, index) => (
                 <IdeaCard key={idea.id === "uuid-string-here" ? `idea-${index}` : idea.id} idea={idea} onSelect={setSelectedIdea} />
               ))}
