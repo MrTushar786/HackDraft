@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0a0a0a;
+  --accent: #00ff88;
+  --card-bg: #111111;
+  --text-muted: #666666;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-[#0a0a0a] text-white selection:bg-[#00ff88] selection:text-black;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Syne', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+code, pre, .font-mono {
+  font-family: 'Space Mono', 'Menlo', monospace;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#00ff88] text-black px-8 py-3 font-bold uppercase tracking-wider
+      hover:bg-white hover:scale-[1.03] active:scale-100
+      transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
+      font-mono;
+  }
+
+  .glass-card {
+    @apply bg-[#111] border border-white/10 p-6
+      hover:border-[#00ff88]/40 transition-all duration-500;
+  }
+
+  .input-field {
+    @apply bg-transparent border-b-2 border-white/20 px-4 py-3 outline-none
+      focus:border-[#00ff88] transition-colors w-full text-base
+      placeholder:text-gray-600;
+  }
+
+  .badge {
+    @apply px-2.5 py-0.5 text-[10px] uppercase font-bold border font-mono tracking-widest;
+  }
+
+  .terminal-cursor {
+    @apply inline-block w-2 h-4 bg-[#00ff88] animate-pulse ml-1;
+  }
+
+  .section-glow {
+    box-shadow: 0 0 80px -20px rgba(0, 255, 136, 0.08);
+  }
+}
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #00ff88; }
+
+/* Smooth fade-in animations */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeSlideUp 0.5s ease forwards;
+}
+/* Printing Styles */
+@media print {
+  @page {
+    margin: 15mm;
+    size: A4 portrait;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide everything except the printable content */
+  body > * {
+    display: none !important;
+  }
+
+  .detail-view {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Force light theme for printing */
+  .detail-view header {
+    background: #f8fafc !important;
+    border: 2px solid #000 !important;
+    color: black !important;
+  }
+
+  .detail-view h1,
+  .detail-view h2,
+  .detail-view h3,
+  .detail-view h4 {
+    color: black !important;
+  }
+
+  .detail-view p,
+  .detail-view span,
+  .detail-view li,
+  .detail-view code {
+    color: #1a1a1a !important;
+  }
+
+  .detail-view section {
+    page-break-inside: avoid;
+    border-color: #e2e8f0 !important;
+    margin-bottom: 2rem !important;
+  }
+
+  /* Fix canvas and card containers for print */
+  .detail-view div[class*="bg-"],
+  .detail-view section > div {
+    background: #fdfdfd !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  /* Code blocks in print */
+  .detail-view pre,
+  .detail-view code {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: black !important;
+    white-space: pre-wrap !important;
+  }
+
+  /* Canvas and Diagrams */
+  .detail-view [style*="min-height"] {
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  /* Page breaks */
+  .detail-view section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
