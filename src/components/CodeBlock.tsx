@@ -4,7 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import type { CodeSnippet } from '../types';
 
 // A hand-tuned theme built on top of the VS Code dark+ palette
-const hackMindTheme: Record<string, React.CSSProperties> = {
+const hackDraftTheme: Record<string, React.CSSProperties> = {
   'code[class*="language-"]': {
     color: '#d4d4d4',
     background: 'transparent',
@@ -178,7 +178,7 @@ export const CodeBlock = ({ snippet }: { snippet: CodeSnippet }) => {
           <div className="flex-1 px-5 py-5 overflow-x-auto">
             <SyntaxHighlighter
               language={prismLang}
-              style={hackMindTheme}
+              style={hackDraftTheme}
               customStyle={{
                 background: 'transparent',
                 margin: 0,

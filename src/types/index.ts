@@ -62,4 +62,4 @@ export interface AgentResponse {
 }
 
 // Concrete export to satisfy ESM module requirements
-export const HACKMIND_VERSION = "1.1.0";
+export const HACKDRAFT_VERSION = "1.1.0";

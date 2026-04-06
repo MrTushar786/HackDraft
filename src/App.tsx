@@ -10,20 +10,20 @@ import { Brain, Terminal } from 'lucide-react';
 function App() {
   const { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea } = useAgent();
   const [selectedIdea, setSelectedIdea] = useState<ProjectIdea | null>(() => {
-    const saved = localStorage.getItem('hackmind_selected');
+    const saved = localStorage.getItem('hackdraft_selected');
     return saved ? JSON.parse(saved) : null;
   });
   const [hasStarted, setHasStarted] = useState(() => {
-    const saved = localStorage.getItem('hackmind_started');
+    const saved = localStorage.getItem('hackdraft_started');
     return saved === 'true';
   });
 
   useEffect(() => {
-    localStorage.setItem('hackmind_selected', JSON.stringify(selectedIdea));
+    localStorage.setItem('hackdraft_selected', JSON.stringify(selectedIdea));
   }, [selectedIdea]);
 
   useEffect(() => {
-    localStorage.setItem('hackmind_started', hasStarted.toString());
+    localStorage.setItem('hackdraft_started', hasStarted.toString());
   }, [hasStarted]);
 
   const handleFormSubmit = (data: any) => {
@@ -53,12 +53,12 @@ function App() {
               setHasStarted(false); 
               setSelectedIdea(null); 
               clearIdeas();
-              localStorage.removeItem('hackmind_started');
-              localStorage.removeItem('hackmind_selected');
+              localStorage.removeItem('hackdraft_started');
+              localStorage.removeItem('hackdraft_selected');
             }}
           >
             <Brain className="text-accent" />
-            HACKMIND<span className="text-accent">_</span>
+            HACKDRAFT<span className="text-accent">_</span>
           </div>
           <div className="hidden md:flex gap-10 font-mono text-[10px] uppercase tracking-widest text-gray-500">
             <span>[agent_status: idle]</span>

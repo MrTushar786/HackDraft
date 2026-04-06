@@ -5,18 +5,18 @@ import { buildSystemPrompt, buildUserPrompt, buildRefinePrompt } from "../utils/
 export const useAgent = () => {
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState<ProjectIdea[]>(() => {
-    const saved = localStorage.getItem('hackmind_ideas');
+    const saved = localStorage.getItem('hackdraft_ideas');
     return saved ? JSON.parse(saved) : [];
   });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('hackmind_ideas', JSON.stringify(ideas));
+    localStorage.setItem('hackdraft_ideas', JSON.stringify(ideas));
   }, [ideas]);
 
   const clearIdeas = () => {
     setIdeas([]);
-    localStorage.removeItem('hackmind_ideas');
+    localStorage.removeItem('hackdraft_ideas');
   };
 
   const updateIdea = (updatedIdea: ProjectIdea) => {

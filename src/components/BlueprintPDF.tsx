@@ -8,7 +8,7 @@ interface BlueprintPDFProps {
 export const BlueprintPDF: React.FC<BlueprintPDFProps> = ({ idea }) => {
   return (
     <div 
-      id="hackmind-blueprint-pdf-v2"
+      id="hackdraft-blueprint-pdf-v2"
       className="bg-[#0a0a0a] text-white p-12 w-[1200px]"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
@@ -16,7 +16,7 @@ export const BlueprintPDF: React.FC<BlueprintPDFProps> = ({ idea }) => {
         {/* Header Section */}
         <div className="flex justify-between items-start mb-20">
           <div>
-            <div className="text-[#00ff88] font-mono text-xs uppercase tracking-[0.5em] mb-4 font-bold">HackMind AI / Official Output</div>
+            <div className="text-[#00ff88] font-mono text-xs uppercase tracking-[0.5em] mb-4 font-bold">HackDraft AI / Official Output</div>
             <h1 className="text-8xl font-black uppercase tracking-tighter leading-none mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>
               {idea.name}
             </h1>
@@ -176,7 +176,7 @@ export const BlueprintPDF: React.FC<BlueprintPDFProps> = ({ idea }) => {
 
         {/* Footer */}
         <div className="mt-32 pt-10 border-t border-white/10 flex items-center justify-between opacity-30">
-          <div className="text-[10px] font-mono tracking-widest grayscale font-bold">BY HACKMIND AI ENGINE V2.1</div>
+          <div className="text-[10px] font-mono tracking-widest grayscale font-bold">BY HACKDRAFT AI ENGINE V2.1</div>
           <div className="text-[10px] font-mono tracking-widest grayscale">© {new Date().getFullYear()} ALL PLATFORMS PROTECTED</div>
           <div className="w-12 h-1 bg-[#00ff88]" />
         </div>
