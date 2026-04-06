@@ -42,7 +42,7 @@ export default defineConfig({
         server.middlewares.use(async (req, res, next) => {
           const url = new URL(req.url || '', `http://${req.headers.host}`)
 
-          if (url.pathname !== '/api/generate') {
+          if (url.pathname !== '/api/generate' && url.pathname !== '/api/chat') {
             next()
             return
           }
@@ -57,17 +57,58 @@ export default defineConfig({
           req.on('data', (chunk) => { body += chunk })
           req.on('end', async () => {
             try {
-              const { systemPrompt, userMessage } = JSON.parse(body)
               const hf = new HfInference(process.env.HUGGINGFACE_API_KEY)
+              const payload = JSON.parse(body)
 
+              if (url.pathname === '/api/chat') {
+                const { idea, messages } = payload;
+                if (!idea || !messages) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: 'Missing idea or messages' }));
+                  return;
+                }
+                const systemContent = `You are "HackDraft Buddy", an enthusiastic, elite developer buddy helping the user build their hackathon project: "${idea.name}".
+Your personality: encouraging, highly technical, concise, and focused on shipping.
+
+Here is the blueprint of the project you are building together:
+- Tagline: ${idea.tagline}
+- Tech Stack: ${idea.techStack?.map((t: any) => t.name).join(', ')}
+- Problem: ${idea.problem}
+- Solution: ${idea.solution}
+
+Keep your answers extremely concise, practical, and conversational. Provide code snippets only if explicitly asked or highly relevant. Do NOT output markdown formatting like triple backticks unless providing code. Use brief bullet points if needed. Speak directly to the developer as their partner.`;
+
+                const stream = hf.chatCompletionStream({
+                  model: 'meta-llama/Llama-3.1-8B-Instruct',
+                  messages: [
+                    { role: 'system', content: systemContent },
+                    ...messages.map((m: any) => ({ role: m.role, content: m.content }))
+                  ],
+                  max_tokens: 1000,
+                  temperature: 0.7,
+                });
+
+                let raw = '';
+                for await (const chunk of stream) {
+                  if (chunk.choices?.length > 0) {
+                    raw += chunk.choices[0].delta.content || '';
+                  }
+                }
+                res.setHeader('Content-Type', 'application/json')
+                res.end(JSON.stringify({ reply: raw }))
+                return;
+              }
+
+              // Handle /api/generate
+              const { systemPrompt, userMessage } = payload
               const stream = hf.chatCompletionStream({
                 model: 'meta-llama/Llama-3.1-8B-Instruct',
                 messages: [
                   { role: 'system', content: systemPrompt },
                   { role: 'user',   content: userMessage  },
                 ],
-                max_tokens: 4000,
-                temperature: 0.1,
+                max_tokens: 8192,
+                temperature: 0.2,
               })
 
               let raw = ''

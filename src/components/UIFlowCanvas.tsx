@@ -95,20 +95,25 @@ export const UIFlowCanvas: React.FC<UIFlowCanvasProps> = ({ flowSteps, onChange 
     [setEdges],
   );
 
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
   const handleNodeUpdate = (index: number, title: string, newDesc: string) => {
     const newSteps = [...flowSteps];
     newSteps[index] = `${title}: ${newDesc}`;
-    onChange?.(newSteps);
+    onChangeRef.current?.(newSteps);
   };
 
   const addNode = () => {
     const newSteps = [...flowSteps, "New Screen: Description goes here"];
-    onChange?.(newSteps);
+    onChangeRef.current?.(newSteps);
   };
 
   const deleteNode = (index: number) => {
     const newSteps = flowSteps.filter((_, i) => i !== index);
-    onChange?.(newSteps);
+    onChangeRef.current?.(newSteps);
   };
 
   const toggleFullscreen = () => {

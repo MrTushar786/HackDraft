@@ -296,11 +296,20 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({ steps, m
   }, [steps, mermaidDiagram, parseStepsToArchNodes, parseMermaidToArchNodes, archNodesToRF, setNodes, setEdges]);
 
   // Persist changes up
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
   useEffect(() => {
     if (nodes.length > 0) {
-      onChange?.(serialize(nodes));
+      // Small debounce/timeout to let initial parse settle
+      const timer = setTimeout(() => {
+        onChangeRef.current?.(serialize(nodes));
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [nodes, serialize, onChange]);
+  }, [nodes, serialize]);
 
   // ─── Handlers ─────────────────────────────────────────────────────
   const handleUpdate = useCallback((id: string, label: string, description: string, category: ArchNode['category']) => {

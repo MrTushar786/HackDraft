@@ -4,6 +4,7 @@ import { InputForm } from './components/InputForm';
 import { IdeaCard } from './components/IdeaCard';
 import { DetailView } from './components/DetailView';
 import { LoadingTerminal } from './components/LoadingTerminal';
+import { ChatBot } from './components/ChatBot';
 import type { ProjectIdea } from './types';
 import { Brain, Terminal } from 'lucide-react';
 
@@ -115,6 +116,7 @@ function App() {
               onRefine={handleRefine}
               onUpdate={handleUpdateIdea}
             />
+            <ChatBot idea={selectedIdea} />
             {loading && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
                 <LoadingTerminal />
