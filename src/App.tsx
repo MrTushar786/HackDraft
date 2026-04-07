@@ -6,10 +6,16 @@ import { DetailView } from './components/DetailView';
 import { LoadingTerminal } from './components/LoadingTerminal';
 import { ChatBot } from './components/ChatBot';
 import type { ProjectIdea } from './types';
-import { Brain, Terminal } from 'lucide-react';
+import { Brain, Terminal, User as UserIcon, Settings, ChevronDown, Check, Edit2 } from 'lucide-react';
+import { supabase } from './lib/supabase';
+import { AuthModal } from './components/AuthModal';
+import { ProfileMenu } from './components/ProfileMenu';
+import { HistoryModal } from './components/HistoryModal';
+import type { User } from '@supabase/supabase-js';
+import { LogOut } from 'lucide-react';
 
 function App() {
-  const { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea } = useAgent();
+  const { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea, fetchHistoryFromDB } = useAgent();
   const [selectedIdea, setSelectedIdea] = useState<ProjectIdea | null>(() => {
     const saved = localStorage.getItem('hackdraft_selected');
     return saved ? JSON.parse(saved) : null;
@@ -18,6 +24,47 @@ function App() {
     const saved = localStorage.getItem('hackdraft_started');
     return saved === 'true';
   });
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [showSignupFirst, setShowSignupFirst] = useState(false);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<ProjectIdea[]>(() => {
+    const saved = localStorage.getItem('hackdraft_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('hackdraft_history', JSON.stringify(history));
+  }, [history]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        // Fetch from DB when user logs in
+        fetchHistoryFromDB().then(setHistory);
+      } else {
+        setHistory([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const openAuth = (mode: 'login' | 'signup') => {
+    setShowSignupFirst(mode === 'signup');
+    setAuthMessage(null);
+    setIsAuthModalOpen(true);
+  };
 
   useEffect(() => {
     localStorage.setItem('hackdraft_selected', JSON.stringify(selectedIdea));
@@ -25,9 +72,27 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('hackdraft_started', hasStarted.toString());
-  }, [hasStarted]);
+    
+    if (ideas.length > 0 && hasStarted && !loading) {
+      setHistory(prev => {
+        const newHistory = [...prev];
+        ideas.forEach(idea => {
+          if (!newHistory.find(h => h.id === idea.id)) {
+            newHistory.unshift(idea);
+          }
+        });
+        return newHistory.slice(0, 50); // Keep last 50
+      });
+    }
+  }, [hasStarted, ideas, loading]);
 
   const handleFormSubmit = (data: any) => {
+    if (!user) {
+      setAuthMessage('AUTHENTICATION REQUIRED: PLEASE LOGIN TO GENERATE BLUEPRINTS');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     setHasStarted(true);
     generateIdeas(data);
   };
@@ -46,13 +111,13 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-foreground custom-scrollbar overflow-x-hidden selection:bg-accent selection:text-black">
       {/* Navbar Minimalist */}
-      <nav className="fixed top-0 w-full px-8 py-6 z-50 mix-blend-difference pointer-events-none">
+      <nav className="fixed top-0 w-full px-8 py-6 z-[9999] pointer-events-none">
         <div className="flex justify-between items-center max-w-[1400px] mx-auto pointer-events-auto">
-          <div 
-            className="flex items-center gap-3 font-syne font-black text-2xl tracking-tighter cursor-pointer" 
-            onClick={() => { 
-              setHasStarted(false); 
-              setSelectedIdea(null); 
+          <div
+            className="flex items-center gap-3 font-syne font-black text-2xl tracking-tighter cursor-pointer mix-blend-difference"
+            onClick={() => {
+              setHasStarted(false);
+              setSelectedIdea(null);
               clearIdeas();
               localStorage.removeItem('hackdraft_started');
               localStorage.removeItem('hackdraft_selected');
@@ -61,9 +126,40 @@ function App() {
             <Brain className="text-accent" />
             HACKDRAFT<span className="text-accent">_</span>
           </div>
-          <div className="hidden md:flex gap-10 font-mono text-[10px] uppercase tracking-widest text-gray-500">
-            <span>[agent_status: idle]</span>
-            <span>[v1.0.4]</span>
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex gap-10 font-mono text-[10px] uppercase tracking-widest text-gray-400/60 mix-blend-difference">
+              <span className="flex items-center gap-2 group transition-colors">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                [agent_status: {loading ? 'processing' : 'idle'}]
+              </span>
+              <span>[v1.0.4]</span>
+            </div>
+
+            <div className="flex items-center gap-4 ml-4">
+              {user ? (
+                <ProfileMenu 
+                  user={user} 
+                  onLogout={handleLogout} 
+                  onViewHistory={() => setIsHistoryOpen(true)} 
+                  projectCount={history.length}
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openAuth('login')}
+                    className="font-mono text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-colors border border-white/5 px-4 py-2 hover:border-white/20"
+                  >
+                    [login]
+                  </button>
+                  <button
+                    onClick={() => openAuth('signup')}
+                    className="font-mono text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all border border-white/10 px-4 py-2 hover:border-white/40"
+                  >
+                    [signup]
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>
@@ -71,35 +167,35 @@ function App() {
       <main className="pt-24 pb-12">
         {!hasStarted && !selectedIdea && (
           <div className="max-w-[1100px] mx-auto px-8">
-             <div className="text-center space-y-4 mb-4">
-                <h1 className="text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl font-syne font-black leading-none uppercase tracking-tight whitespace-nowrap flex justify-center w-full">
-                  BUILD. SHIP. <span className="text-accent underline decoration-accent/20 ml-3">WIN.</span>
-                </h1>
-                <p className="max-w-2xl mx-auto text-base text-gray-500 font-mono leading-relaxed mt-4">
-                  Stop overthinking the problem statement. Hand your constraints to our senior architect agents and start shipping your winning prototype in seconds.
-                </p>
-             </div>
-             <InputForm onSubmit={handleFormSubmit} loading={loading} />
+            <div className="text-center space-y-4 mb-4">
+              <h1 className="text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl font-syne font-black leading-none uppercase tracking-tight whitespace-nowrap flex justify-center w-full">
+                BUILD. SHIP. <span className="text-accent underline decoration-accent/20 ml-3">WIN.</span>
+              </h1>
+              <p className="max-w-2xl mx-auto text-base text-gray-500 font-mono leading-relaxed mt-4">
+                Stop overthinking the problem statement. Hand your constraints to our senior architect agents and start shipping your winning prototype in seconds.
+              </p>
+            </div>
+            <InputForm onSubmit={handleFormSubmit} loading={loading} />
           </div>
         )}
 
-        {hasStarted && loading && !ideas.length && <LoadingTerminal />}
+        {hasStarted && loading && !selectedIdea && <LoadingTerminal />}
 
         {hasStarted && !loading && ideas.length > 0 && !selectedIdea && (
           <div className="max-w-[1200px] mx-auto px-8 animate-in fade-in slide-in-from-bottom duration-1000">
             <div className="flex justify-between items-end mb-16">
-               <div className="space-y-2">
-                 <h2 className="text-5xl font-syne font-black uppercase">Architectural Blueprints</h2>
-                 <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">{ideas.length} Strategic Directions Generated for your theme.</p>
-               </div>
-               <button 
-                 onClick={() => { setHasStarted(false); }} 
-                 className="text-accent font-mono text-[10px] uppercase border border-accent/20 px-4 py-2 hover:bg-accent hover:text-black transition-all"
-               >
-                 [redefine_problem]
-               </button>
+              <div className="space-y-2">
+                <h2 className="text-5xl font-syne font-black uppercase">Architectural Blueprints</h2>
+                <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">{ideas.length} Strategic Directions Generated for your theme.</p>
+              </div>
+              <button
+                onClick={() => { setHasStarted(false); }}
+                className="text-accent font-mono text-[10px] uppercase border border-accent/20 px-4 py-2 hover:bg-accent hover:text-black transition-all"
+              >
+                [redefine_problem]
+              </button>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-8">
               {ideas.map((idea, index) => (
                 <IdeaCard key={idea.id === "uuid-string-here" ? `idea-${index}` : idea.id} idea={idea} onSelect={setSelectedIdea} />
@@ -110,9 +206,9 @@ function App() {
 
         {selectedIdea && (
           <div className="animate-in fade-in duration-500">
-            <DetailView 
-              idea={selectedIdea} 
-              onBack={() => setSelectedIdea(null)} 
+            <DetailView
+              idea={selectedIdea}
+              onBack={() => setSelectedIdea(null)}
               onRefine={handleRefine}
               onUpdate={handleUpdateIdea}
             />
@@ -147,6 +243,28 @@ function App() {
           </div>
         </div>
       </footer>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        initialMode={showSignupFirst ? 'signup' : 'login'}
+        externalMessage={authMessage}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {isHistoryOpen && (
+        <HistoryModal 
+          history={history}
+          onSelect={(idea) => {
+            setSelectedIdea(idea);
+            setHasStarted(true);
+            setIsHistoryOpen(false);
+          }}
+          onClose={() => setIsHistoryOpen(false)}
+          onClear={() => {
+            setHistory([]);
+            localStorage.removeItem('hackdraft_history');
+          }}
+        />
+      )}
     </div>
   );
 }

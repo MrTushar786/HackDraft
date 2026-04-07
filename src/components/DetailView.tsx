@@ -59,6 +59,8 @@ export const DetailView = ({
 }) => {
   const [refineText, setRefineText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [copiedCmdIndex, setCopiedCmdIndex] = useState<number | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
   const diff = difficultyStyles[idea.difficulty] ?? difficultyStyles.Advanced;
 
   const downloadReadme = () => {
@@ -603,20 +605,37 @@ ${idea.timeline?.map(p => `[${p.phase} — ${p.duration}]\n${p.tasks?.map(t => `
                          <div key={i} className="mb-4 last:mb-0 flex items-center justify-between group/cmd">
                            <span className="break-all">{cmd}</span>
                            <button 
-                             onClick={() => navigator.clipboard.writeText(cmd)}
-                             className="opacity-0 group-hover/cmd:opacity-100 ml-4 px-2 py-0.5 bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/20 rounded text-[9px] uppercase hover:bg-[#00ff88] hover:text-black transition-all"
+                             onClick={() => {
+                               navigator.clipboard.writeText(cmd);
+                               setCopiedCmdIndex(i);
+                               setTimeout(() => setCopiedCmdIndex(null), 2000);
+                             }}
+                             className={`ml-4 px-2 py-0.5 border rounded text-[9px] uppercase transition-all ${
+                               copiedCmdIndex === i 
+                                 ? 'bg-[#00ff88] text-black border-[#00ff88]' 
+                                 : 'opacity-0 group-hover/cmd:opacity-100 bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20 hover:bg-[#00ff88] hover:text-black'
+                             }`}
                            >
-                             Copy
+                             {copiedCmdIndex === i ? 'Copied' : 'Copy'}
                            </button>
                          </div>
                        ))}
                     </div>
                  </div>
                  <button 
-                   onClick={() => navigator.clipboard.writeText((idea.setupCommands || [idea.setupCommand || ""]).join(' && '))}
-                   className="w-full py-2 bg-white/[0.03] text-gray-500 font-bold font-mono text-[10px] uppercase hover:bg-[#00ff88]/10 hover:text-[#00ff88] transition-colors flex items-center justify-center gap-2"
+                   onClick={() => {
+                     const allCmds = (idea.setupCommands || [idea.setupCommand || ""]).join(' && ');
+                     navigator.clipboard.writeText(allCmds);
+                     setCopiedAll(true);
+                     setTimeout(() => setCopiedAll(false), 2000);
+                   }}
+                   className={`w-full py-2 font-bold font-mono text-[10px] uppercase transition-colors flex items-center justify-center gap-2 ${
+                     copiedAll 
+                       ? 'bg-[#00ff88] text-black' 
+                       : 'bg-white/[0.03] text-gray-500 hover:bg-[#00ff88]/10 hover:text-[#00ff88]'
+                   }`}
                  >
-                   Copy All as One-Liner
+                   {copiedAll ? <><Check size={10} /> Copied to Clipboard</> : 'Copy All as One-Liner'}
                  </button>
               </div>
             </section>

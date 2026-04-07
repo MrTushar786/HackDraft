@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { HackathonInput, ProjectIdea, AgentResponse } from "../types";
 import { buildSystemPrompt, buildUserPrompt, buildRefinePrompt } from "../utils/promptBuilder";
+import { supabase } from "../lib/supabase";
 
 export const useAgent = () => {
   const [loading, setLoading] = useState(false);
@@ -19,12 +20,47 @@ export const useAgent = () => {
     localStorage.removeItem('hackdraft_ideas');
   };
 
+  const syncProjectsToDB = async (newIdeas: ProjectIdea[]) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const projectsToInsert = newIdeas.map(idea => ({
+        user_id: user.id,
+        project_data: idea
+      }));
+
+      await supabase.from('user_projects').insert(projectsToInsert);
+    } catch (err) {
+      console.error('DB Sync Error:', err);
+    }
+  };
+
+  const fetchHistoryFromDB = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('user_projects')
+        .select('project_data')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(row => row.project_data as ProjectIdea);
+    } catch (err) {
+      console.error('Fetch Error:', err);
+      return [];
+    }
+  };
+
   const updateIdea = (updatedIdea: ProjectIdea) => {
     setIdeas(prev => prev.map(i => i.id === updatedIdea.id ? updatedIdea : i));
   };
 
   const generateIdeas = async (input: HackathonInput) => {
     setLoading(true);
+    setIdeas([]);
     setError(null);
     let attempts = 0;
     const maxAttempts = 2;
@@ -48,6 +84,7 @@ export const useAgent = () => {
         }
 
         setIdeas(data.ideas);
+        await syncProjectsToDB(data.ideas); // Save to DB!
         break; // Success, exit loop
       } catch (err: unknown) {
         console.error(`Generation attempt ${attempts} failed:`, err);
@@ -88,5 +125,5 @@ export const useAgent = () => {
     }
   };
 
-  return { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea };
+  return { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea, fetchHistoryFromDB };
 };
