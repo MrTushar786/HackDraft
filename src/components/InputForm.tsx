@@ -5,7 +5,7 @@ import { Cpu, Terminal, Users, Clock, Plus, X } from 'lucide-react';
 const DURATIONS = ['24h', '48h', '72h'];
 const TEAM_SIZES = ['Solo', '2-3 people', '4-5 people'];
 const DEFAULT_SKILLS = [
-  'React', 'Next.js', 'Vite', 'TypeScript', 'Python', 'Go', 'Rust', 
+  'React', 'Next.js', 'Vite', 'TypeScript', 'Python', 'Go', 'Rust',
   'ML', 'NLP', 'Computer Vision', 'LLMs', 'Agentic AI', 'Vector DBs',
   'Web3', 'Solidity', 'Blockchain', 'Ethereum',
   'PostgreSQL', 'Prisma', 'MongoDB', 'Firebase', 'Supabase',
@@ -60,10 +60,21 @@ export const InputForm = ({ onSubmit, loading }: { onSubmit: (data: HackathonInp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6 py-4 px-4 bg-white/[0.02] border border-white/5 p-8 rounded-xl backdrop-blur-sm shadow-2xl relative z-10 overflow-hidden">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-3xl mx-auto space-y-6 py-6 px-6 relative z-10 overflow-hidden"
+      style={{
+        background: 'rgba(8, 8, 8, 0.6)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        boxShadow: '0 0 80px -20px rgba(0,0,0,0.8), inset 0 0 40px -20px rgba(0,255,136,0.03)',
+      }}
+    >
       {/* Background Glow */}
       <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-accent/5 blur-[120px] pointer-events-none" />
-      
+
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-accent uppercase font-mono tracking-tighter text-xs font-bold">
           <Terminal size={12} /> Project Theme / Problem
@@ -105,7 +116,7 @@ export const InputForm = ({ onSubmit, loading }: { onSubmit: (data: HackathonInp
                 {d}
               </button>
             ))}
-            
+
             {!showCustomDuration && (!formData.duration || DURATIONS.includes(formData.duration)) ? (
               <button
                 type="button"
@@ -116,14 +127,14 @@ export const InputForm = ({ onSubmit, loading }: { onSubmit: (data: HackathonInp
               </button>
             ) : (
               <input
-                 autoFocus
-                 className="flex-1 min-w-[70px] bg-black/40 border border-accent px-2 py-1.5 font-mono text-[10px] text-white outline-none rounded-sm placeholder:text-gray-600"
-                 placeholder="e.g. 1 Week"
-                 value={!DURATIONS.includes(formData.duration) ? formData.duration : ''}
-                 onChange={e => setFormData({ ...formData, duration: e.target.value as any })}
-                 onBlur={() => {
-                   if (!formData.duration || DURATIONS.includes(formData.duration)) setShowCustomDuration(false);
-                 }}
+                autoFocus
+                className="flex-1 min-w-[70px] bg-black/40 border border-accent px-2 py-1.5 font-mono text-[10px] text-white outline-none rounded-sm placeholder:text-gray-600"
+                placeholder="e.g. 1 Week"
+                value={!DURATIONS.includes(formData.duration) ? formData.duration : ''}
+                onChange={e => setFormData({ ...formData, duration: e.target.value as any })}
+                onBlur={() => {
+                  if (!formData.duration || DURATIONS.includes(formData.duration)) setShowCustomDuration(false);
+                }}
               />
             )}
           </div>
@@ -159,14 +170,14 @@ export const InputForm = ({ onSubmit, loading }: { onSubmit: (data: HackathonInp
               </button>
             ) : (
               <input
-                 autoFocus
-                 className="flex-1 min-w-[70px] bg-black/40 border border-accent px-2 py-1.5 font-mono text-[9px] text-white outline-none rounded-sm placeholder:text-gray-600"
-                 placeholder="e.g. 10 Devs"
-                 value={!TEAM_SIZES.includes(formData.teamSize) ? formData.teamSize : ''}
-                 onChange={e => setFormData({ ...formData, teamSize: e.target.value as any })}
-                 onBlur={() => {
-                   if (!formData.teamSize || TEAM_SIZES.includes(formData.teamSize)) setShowCustomTeamSize(false);
-                 }}
+                autoFocus
+                className="flex-1 min-w-[70px] bg-black/40 border border-accent px-2 py-1.5 font-mono text-[9px] text-white outline-none rounded-sm placeholder:text-gray-600"
+                placeholder="e.g. 10 Devs"
+                value={!TEAM_SIZES.includes(formData.teamSize) ? formData.teamSize : ''}
+                onChange={e => setFormData({ ...formData, teamSize: e.target.value as any })}
+                onBlur={() => {
+                  if (!formData.teamSize || TEAM_SIZES.includes(formData.teamSize)) setShowCustomTeamSize(false);
+                }}
               />
             )}
           </div>

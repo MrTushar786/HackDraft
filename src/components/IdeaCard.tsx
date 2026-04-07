@@ -2,9 +2,9 @@ import type { ProjectIdea } from '../types';
 import { ArrowUpRight, Zap, ChevronRight } from 'lucide-react';
 
 const difficultyConfig: Record<string, { border: string; text: string; glow: string; dot: string }> = {
-  Beginner:     { border: 'border-emerald-500/40', text: 'text-emerald-400', glow: 'hover:shadow-emerald-500/10', dot: 'bg-emerald-400' },
-  Intermediate: { border: 'border-amber-500/40',   text: 'text-amber-400',   glow: 'hover:shadow-amber-500/10',   dot: 'bg-amber-400'   },
-  Advanced:     { border: 'border-rose-500/40',     text: 'text-rose-400',     glow: 'hover:shadow-rose-500/10',     dot: 'bg-rose-400'     },
+  Beginner: { border: 'border-emerald-500/40', text: 'text-emerald-400', glow: 'hover:shadow-emerald-500/10', dot: 'bg-emerald-400' },
+  Intermediate: { border: 'border-amber-500/40', text: 'text-amber-400', glow: 'hover:shadow-amber-500/10', dot: 'bg-amber-400' },
+  Advanced: { border: 'border-rose-500/40', text: 'text-rose-400', glow: 'hover:shadow-rose-500/10', dot: 'bg-rose-400' },
 };
 
 export const IdeaCard = ({ idea, onSelect }: { idea: ProjectIdea; onSelect: (idea: ProjectIdea) => void }) => {
@@ -12,7 +12,21 @@ export const IdeaCard = ({ idea, onSelect }: { idea: ProjectIdea; onSelect: (ide
 
   return (
     <div
-      className={`flex flex-col group h-full cursor-pointer bg-[#111] border border-white/5 hover:border-[#00ff88]/30 hover:-translate-y-2 hover:shadow-2xl ${config.glow} transition-all duration-500 overflow-hidden`}
+      className={`flex flex-col group h-full cursor-pointer border transition-all duration-500 overflow-hidden hover:-translate-y-2 hover:shadow-2xl ${config.glow}`}
+      style={{
+        background: 'rgba(12, 12, 12, 0.55)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0, 255, 136, 0.35)';
+        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 40px -10px rgba(0,255,136,0.15), inset 0 0 60px -20px rgba(0,255,136,0.04)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 255, 255, 0.08)';
+        (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+      }}
       onClick={() => onSelect(idea)}
     >
       {/* Top accent line */}

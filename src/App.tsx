@@ -11,10 +11,27 @@ import { supabase } from './lib/supabase';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { HistoryModal } from './components/HistoryModal';
+import { MovingLights } from './components/MovingLights';
 import type { User } from '@supabase/supabase-js';
 import { LogOut } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 
 function App() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const spotlightRange = 600;
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
+  const spotlightMask = useTransform(
+    [mouseX, mouseY],
+    ([x, y]) => `radial-gradient(${spotlightRange}px circle at ${x}px ${y}px, rgba(0, 255, 136, 0.06), transparent 80%)`
+  );
+
   const { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea, fetchHistoryFromDB } = useAgent();
   const [selectedIdea, setSelectedIdea] = useState<ProjectIdea | null>(() => {
     const saved = localStorage.getItem('hackdraft_selected');
@@ -72,7 +89,7 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('hackdraft_started', hasStarted.toString());
-    
+
     if (ideas.length > 0 && hasStarted && !loading) {
       setHistory(prev => {
         const newHistory = [...prev];
@@ -109,7 +126,93 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground custom-scrollbar overflow-x-hidden selection:bg-accent selection:text-black">
+    <div
+      onMouseMove={handleMouseMove}
+      className="min-h-screen bg-[#050505] text-foreground custom-scrollbar overflow-x-hidden selection:bg-[#00ff88] selection:text-black"
+    >
+      {/* ── Background Layer ────────────────────────────────────────── */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+
+        {/* 1 · Roaming multi-colour lights (below grid) */}
+        <MovingLights />
+
+        {/* 2 · Primary grid — large cells, subtle lines */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), ' +
+              'linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+            maskImage: 'radial-gradient(ellipse 75% 75% at 50% 45%, white 20%, rgba(255,255,255,0.3) 60%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 75% 75% at 50% 45%, white 20%, rgba(255,255,255,0.3) 60%, transparent 100%)',
+          }}
+        />
+
+        {/* 3 · Fine sub-grid — 12px cells, very faint */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(255,255,255,0.012) 1px, transparent 1px), ' +
+              'linear-gradient(to bottom, rgba(255,255,255,0.012) 1px, transparent 1px)',
+            backgroundSize: '12px 12px',
+            maskImage: 'radial-gradient(ellipse 70% 70% at 50% 45%, white 10%, rgba(255,255,255,0.15) 55%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 50% 45%, white 10%, rgba(255,255,255,0.15) 55%, transparent 100%)',
+          }}
+        />
+
+        {/* 4 · Mouse spotlight on top of the grid */}
+        <motion.div
+          style={{ background: spotlightMask }}
+          className="absolute inset-0"
+        />
+
+        {/* 5 · Corner glow anchors */}
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.22, 0.12] }}
+          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] rounded-full"
+          style={{ background: 'radial-gradient(circle, #00ff8815 0%, transparent 70%)', filter: 'blur(120px)' }}
+        />
+        <motion.div
+          animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.18, 0.1] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          className="absolute bottom-[-10%] right-[-5%] w-[45%] h-[45%] rounded-full"
+          style={{ background: 'radial-gradient(circle, #8b5cf615 0%, transparent 70%)', filter: 'blur(100px)' }}
+        />
+
+        {/* 6 · Noise grain texture on top */}
+        <div
+          className="absolute inset-0 opacity-[0.04] mix-blend-overlay"
+          style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }}
+        />
+      </div>
+
+      {/* ── Floating Tech Entities ────────────────────────────────── */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              x: Math.random() * 100 + "%",
+              y: Math.random() * 100 + "%",
+              opacity: 0
+            }}
+            animate={{
+              y: ["0%", "-20%", "0%"],
+              opacity: [0, 0.2, 0]
+            }}
+            transition={{
+              duration: 5 + Math.random() * 10,
+              repeat: Infinity,
+              delay: Math.random() * 5
+            }}
+            className="absolute w-px h-12 bg-gradient-to-b from-[#00ff88]/20 to-transparent"
+          />
+        ))}
+      </div>
+
       {/* Navbar Minimalist */}
       <nav className="fixed top-0 w-full px-8 py-6 z-[9999] pointer-events-none">
         <div className="flex justify-between items-center max-w-[1400px] mx-auto pointer-events-auto">
@@ -137,10 +240,10 @@ function App() {
 
             <div className="flex items-center gap-4 ml-4">
               {user ? (
-                <ProfileMenu 
-                  user={user} 
-                  onLogout={handleLogout} 
-                  onViewHistory={() => setIsHistoryOpen(true)} 
+                <ProfileMenu
+                  user={user}
+                  onLogout={handleLogout}
+                  onViewHistory={() => setIsHistoryOpen(true)}
                   projectCount={history.length}
                 />
               ) : (
@@ -164,62 +267,107 @@ function App() {
         </div>
       </nav>
 
-      <main className="pt-24 pb-12">
-        {!hasStarted && !selectedIdea && (
-          <div className="max-w-[1100px] mx-auto px-8">
-            <div className="text-center space-y-4 mb-4">
-              <h1 className="text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl font-syne font-black leading-none uppercase tracking-tight whitespace-nowrap flex justify-center w-full">
-                BUILD. SHIP. <span className="text-accent underline decoration-accent/20 ml-3">WIN.</span>
-              </h1>
-              <p className="max-w-2xl mx-auto text-base text-gray-500 font-mono leading-relaxed mt-4">
-                Stop overthinking the problem statement. Hand your constraints to our senior architect agents and start shipping your winning prototype in seconds.
-              </p>
-            </div>
-            <InputForm onSubmit={handleFormSubmit} loading={loading} />
-          </div>
-        )}
-
-        {hasStarted && loading && !selectedIdea && <LoadingTerminal />}
-
-        {hasStarted && !loading && ideas.length > 0 && !selectedIdea && (
-          <div className="max-w-[1200px] mx-auto px-8 animate-in fade-in slide-in-from-bottom duration-1000">
-            <div className="flex justify-between items-end mb-16">
-              <div className="space-y-2">
-                <h2 className="text-5xl font-syne font-black uppercase">Architectural Blueprints</h2>
-                <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">{ideas.length} Strategic Directions Generated for your theme.</p>
+      <main className="pt-24 pb-12 relative overflow-hidden" style={{ zIndex: 10 }}>
+        <AnimatePresence mode="wait">
+          {!hasStarted && !selectedIdea && (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              className="max-w-[1100px] mx-auto px-8 relative flex flex-col justify-center min-h-[calc(100vh-160px)]"
+            >
+              <div className="text-center space-y-4 mb-4">
+                <motion.h1
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl font-syne font-black leading-none uppercase tracking-tight whitespace-nowrap flex justify-center w-full"
+                >
+                  BUILD. SHIP. <span className="text-[#00ff88] underline decoration-[#00ff88]/20 ml-3">WIN.</span>
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.4 }}
+                  className="max-w-2xl mx-auto text-base text-gray-500 font-mono leading-relaxed mt-4"
+                >
+                  Stop overthinking the problem statement. Hand your constraints to our architectural agents and start shipping your winning prototype in seconds.
+                </motion.p>
               </div>
-              <button
-                onClick={() => { setHasStarted(false); }}
-                className="text-accent font-mono text-[10px] uppercase border border-accent/20 px-4 py-2 hover:bg-accent hover:text-black transition-all"
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
               >
-                [redefine_problem]
-              </button>
-            </div>
+                <InputForm onSubmit={handleFormSubmit} loading={loading} />
+              </motion.div>
+            </motion.div>
+          )}
 
-            <div className="grid md:grid-cols-2 gap-8">
-              {ideas.map((idea, index) => (
-                <IdeaCard key={idea.id === "uuid-string-here" ? `idea-${index}` : idea.id} idea={idea} onSelect={setSelectedIdea} />
-              ))}
-            </div>
-          </div>
-        )}
+          {hasStarted && loading && !selectedIdea && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <LoadingTerminal />
+            </motion.div>
+          )}
 
-        {selectedIdea && (
-          <div className="animate-in fade-in duration-500">
-            <DetailView
-              idea={selectedIdea}
-              onBack={() => setSelectedIdea(null)}
-              onRefine={handleRefine}
-              onUpdate={handleUpdateIdea}
-            />
-            <ChatBot idea={selectedIdea} />
-            {loading && (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-                <LoadingTerminal />
+          {hasStarted && !loading && ideas.length > 0 && !selectedIdea && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-w-[1200px] mx-auto px-8 animate-in fade-in slide-in-from-bottom duration-1000"
+            >
+              <div className="flex justify-between items-end mb-16">
+                <div className="space-y-2">
+                  <h2 className="text-5xl font-syne font-black uppercase tracking-tighter">Architectural Blueprints</h2>
+                  <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">{ideas.length} Strategic Directions Generated for your theme.</p>
+                </div>
+                <button
+                  onClick={() => { setHasStarted(false); }}
+                  className="text-[#00ff88] font-mono text-[10px] uppercase border border-[#00ff88]/20 px-4 py-2 hover:bg-[#00ff88] hover:text-black transition-all"
+                >
+                  [redefine_problem]
+                </button>
               </div>
-            )}
-          </div>
-        )}
+
+              <div className="grid md:grid-cols-2 gap-8 pb-20">
+                {ideas.map((idea, index) => (
+                  <IdeaCard key={idea.id} idea={idea} onSelect={setSelectedIdea} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {selectedIdea && (
+            <motion.div
+              key="detail"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="animate-in fade-in duration-500"
+            >
+              <DetailView
+                idea={selectedIdea}
+                onBack={() => setSelectedIdea(null)}
+                onRefine={handleRefine}
+                onUpdate={handleUpdateIdea}
+              />
+              <ChatBot idea={selectedIdea} />
+              {loading && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+                  <LoadingTerminal />
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {error && (
           <div className="max-w-xl mx-auto p-10 border-2 border-rose-500 bg-rose-500/10 text-center space-y-4">
@@ -251,7 +399,7 @@ function App() {
       />
 
       {isHistoryOpen && (
-        <HistoryModal 
+        <HistoryModal
           history={history}
           onSelect={(idea) => {
             setSelectedIdea(idea);
