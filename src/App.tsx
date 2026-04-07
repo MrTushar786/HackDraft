@@ -29,7 +29,10 @@ function App() {
 
   const spotlightMask = useTransform(
     [mouseX, mouseY],
-    ([x, y]) => `radial-gradient(${spotlightRange}px circle at ${x}px ${y}px, rgba(0, 255, 136, 0.06), transparent 80%)`
+    (values: number[]) => {
+      const [x, y] = values;
+      return `radial-gradient(${spotlightRange}px circle at ${x}px ${y}px, rgba(0, 255, 136, 0.06), transparent 80%)`;
+    }
   );
 
   const { loading, ideas, error, generateIdeas, refineIdea, clearIdeas, updateIdea, fetchHistoryFromDB } = useAgent();
